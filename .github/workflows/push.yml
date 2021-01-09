@@ -10,6 +10,11 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: test
+        run: env
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          ENV: ${{ toJson(secrets) }}
       - uses: actions/checkout@v2
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@f7aca2fea76a5218f3c76cd5933c3ba1d8008774 #3.0.2
@@ -20,9 +25,6 @@ jobs:
           default_branch: main
           tag_semver: true
           tags: ${{ github.sha }}
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
       - run: |
           awk 'BEGIN{for(v in ENVIRON) print v}' \
           | sort  \
