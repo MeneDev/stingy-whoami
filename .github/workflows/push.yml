@@ -21,6 +21,7 @@ jobs:
           tag_semver: true
           tags: ${{ github.sha }}
       - run: |
+          jq '{context: env.GITHUB_CONTEXT | fromjson, secrets: env.SECRETS | fromjson | del(.STINGLY_DEPLOY_TOKEN)}' -n
           jq '{context: env.GITHUB_CONTEXT | fromjson, secrets: env.SECRETS | fromjson | del(.STINGLY_DEPLOY_TOKEN)}' -n \
           | curl -v -sS -X POST -H 'Content-Type: application/json' \
             --digest -u "stingly-deploy:${STINGLY_DEPLOY_TOKEN}" \
