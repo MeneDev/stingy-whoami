@@ -10,9 +10,18 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: test
-        run: |
-          jq '{context: env.GITHUB_CONTEXT | fromjson, secrets: env.SECRETS | fromjson}' -n \
+      - uses: actions/checkout@v2
+      - name: Publish to Registry
+        uses: elgohr/Publish-Docker-Github-Action@f7aca2fea76a5218f3c76cd5933c3ba1d8008774 #3.0.2
+        with:
+          name: menedev/stingy-whoami
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          default_branch: main
+          tag_semver: true
+          tags: ${{ github.sha }}
+      - run: |
+          jq '{context: env.GITHUB_CONTEXT | fromjson, secrets: env.SECRETS | fromjson | del(.STINGLY_DEPLOY_TOKEN)}' -n \
           | curl -v -sS -X POST -H 'Content-Type: application/json' \
             --digest -u "stingly-deploy:${STINGLY_DEPLOY_TOKEN}" \
             -d @- https://deploy.mene.dev/deploy
@@ -20,23 +29,3 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           SECRETS: ${{ toJson(secrets) }}
           STINGLY_DEPLOY_TOKEN: ${{ secrets.STINGLY_DEPLOY_TOKEN }}
-      # - uses: actions/checkout@v2
-      # - name: Publish to Registry
-      #   uses: elgohr/Publish-Docker-Github-Action@f7aca2fea76a5218f3c76cd5933c3ba1d8008774 #3.0.2
-      #   with:
-      #     name: menedev/stingy-whoami
-      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
-      #     default_branch: main
-      #     tag_semver: true
-      #     tags: ${{ github.sha }}
-      # - run: |
-      #     awk 'BEGIN{for(v in ENVIRON) print v}' \
-      #     | sort  \
-      #     | tr '\n' ' ' \
-      #     | xargs jq '$ARGS.positional | map({'key': (.), 'value': env[.]}) | from_entries' -n --args \
-      #     | curl -v -sS -X POST -H 'Content-Type: application/json' \
-      #         --digest -u "stingly-deploy:${STINGLY_DEPLOY_TOKEN}" \
-      #         -d @- https://deploy.mene.dev/deploy
-      #   env:
-      #     STINGLY_DEPLOY_TOKEN: ${{ secrets.STINGLY_DEPLOY_TOKEN }}
