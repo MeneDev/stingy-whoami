@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  deploy:
+    image: menedev/stingy-whoami:${GITHUB_SHA}
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      labels:
+        caddy: "*.{$$STINGY_ROOT_DOMAIN}"
+        "caddy.@whoami.host": "whoami.{$$STINGY_ROOT_DOMAIN}"
+        caddy.2_route: "@whoami"
+        caddy.2_route.jwt.allow: roles anonymous guest
+        caddy.2_route.3_reverse_proxy: "{{upstreams 8000}}"
+
+networks:
+  caddy:
+    external: true
+    name: caddy_caddy
